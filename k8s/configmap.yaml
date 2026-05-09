@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pod-health-sidecar-config
+data:
+  SIDECAR_LISTEN_ADDR: ":8080"
+  SIDECAR_PROXY_TARGET: "http://127.0.0.1:8081"
+  SIDECAR_HEALTH_INTERVAL: "5s"
+  SIDECAR_HEALTH_TIMEOUT: "1500ms"
+  SIDECAR_HEALTH_RETRIES: "1"
+  SIDECAR_RATE_LIMIT_RPS: "250"
+  SIDECAR_RATE_LIMIT_BURST: "500"
+  SIDECAR_CB_FAIL_THRESHOLD: "3"
+  SIDECAR_CB_COOLDOWN: "15s"
+  SIDECAR_TRACE_SAMPLE_RATE: "0.1"
+  SIDECAR_HEALTH_SERVICES: |
+    [
+      { "name": "app-http", "url": "http://127.0.0.1:8081/health" },
+      { "name": "worker-http", "url": "http://127.0.0.1:8082/health" }
+    ]
