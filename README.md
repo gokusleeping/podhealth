@@ -5,14 +5,34 @@ Production-grade Kubernetes sidecar that aggregates health checks from co-locate
 ## Architecture
 
 ```text
-Client
-  |
-  v
-[Go Sidecar :8080] --proxy--> [Main App :8081]
-      |    \
-      |     \--poll--> [Worker :8082/health]
-      \--poll-------> [Main App :8081/health]
-
+                 +--------------------+
+                 |   Client / Ingress |
+                 +---------+----------+
+                           |
+                           v
+   =========================================================
+   |                 Kubernetes Pod (shared net)           |
+   |                                                       |
+   |   +---------------- Go Sidecar :8080 ---------------+ |
+   |   |  Reverse Proxy                                  | |
+   |   |  Health Aggregator                              | |
+   |   |  Metadata Middleware                            | |
+   |   |  Metrics + Tracing                              | |
+   |   +-----+----------------------+--------------------+ |
+   |         |                      |                      |
+   |         | proxy traffic        | health polls         |
+   |         v                      v                      |
+   |   +-----------+          +-----------+                |
+   |   | Main App  |          |  Worker   |                |
+   |   |   :8081   |          |   :8082   |                |
+   |   +-----------+          +-----------+                |
+   =========================================================
+             |                           |
+             | /metrics                  | traces
+             v                           v
+      +-------------+            +------------------+
+      | Prometheus  |            | OTel Collector   |
+      +-------------+            +------------------+
 Outputs:
 - /health  (aggregated state)
 - /metrics (Prometheus)
